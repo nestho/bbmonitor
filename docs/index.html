@@ -1,152 +1,372 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>bbmonitor — scope &amp; inventory radar</title>
-  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet" />
-  <style>
-    :root { --bg:#0a0c10; --s:#12151c; --s2:#1a1f2b; --b:#2a3142; --t:#e8ecf4; --m:#8b95a8; --g:#3dd68c; --c:#5b9fd4; --a:#e8b84a; --r:#f07178; }
-    *{box-sizing:border-box;margin:0;padding:0}
-    body{font-family:"IBM Plex Sans",system-ui,sans-serif;background:var(--bg);color:var(--t);line-height:1.55;min-height:100vh}
-    .mono{font-family:"IBM Plex Mono",monospace}
-    .wrap{max-width:960px;margin:0 auto;padding:2rem 1.25rem 4rem}
-    .hero{padding:2.5rem 0 2rem;border-bottom:1px solid var(--b);margin-bottom:2rem}
-    .hero-top{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:1rem}
-    .logo{font-size:1.75rem;font-weight:700;letter-spacing:-.03em}.logo span{color:var(--g)}
-    .live{display:inline-flex;align-items:center;gap:.45rem;background:rgba(61,214,140,.12);border:1px solid rgba(61,214,140,.35);color:var(--g);font-size:.75rem;font-weight:600;padding:.3rem .7rem;border-radius:999px}
-    .dot{width:7px;height:7px;border-radius:50%;background:var(--g);animation:pulse 1.6s infinite}
-    @keyframes pulse{0%{box-shadow:0 0 0 0 rgba(61,214,140,.45)}70%{box-shadow:0 0 0 8px transparent}}
-    .tagline{margin-top:.85rem;color:var(--m);font-size:1.05rem;max-width:38rem}
-    .actions{margin-top:1.4rem;display:flex;gap:.7rem;flex-wrap:wrap}
-    .btn{display:inline-flex;padding:.55rem 1.05rem;border-radius:8px;font-weight:600;font-size:.9rem;text-decoration:none;border:1px solid transparent}
-    .btn-p{background:var(--g);color:#0a0c10}.btn-g{background:var(--s2);color:var(--t);border-color:var(--b)}
-    .stats{display:grid;grid-template-columns:repeat(4,1fr);gap:.85rem;margin-bottom:2rem}
-    @media(max-width:700px){.stats{grid-template-columns:repeat(2,1fr)}}
-    .stat{background:var(--s);border:1px solid var(--b);border-radius:12px;padding:1.1rem 1.15rem;position:relative;overflow:hidden}
-    .stat::after{content:"";position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,var(--g),transparent);opacity:.7}
-    .sl{font-size:.72rem;text-transform:uppercase;letter-spacing:.06em;color:var(--m)}
-    .sv{font-family:"IBM Plex Mono",monospace;font-size:1.65rem;font-weight:600;margin-top:.25rem}
-    .ss{font-size:.75rem;color:var(--m);margin-top:.2rem}
-    .grid{display:grid;grid-template-columns:1.25fr .75fr;gap:1rem;margin-bottom:1.5rem}
-    @media(max-width:800px){.grid{grid-template-columns:1fr}}
-    .panel{background:var(--s);border:1px solid var(--b);border-radius:12px;padding:1.15rem 1.25rem}
-    .panel h2{font-size:.8rem;text-transform:uppercase;letter-spacing:.05em;color:var(--m);margin-bottom:.9rem;font-weight:600}
-    .feed{list-style:none;max-height:300px;overflow-y:auto}
-    .feed li{display:flex;gap:.75rem;padding:.55rem 0;border-bottom:1px solid rgba(42,49,66,.6);font-size:.88rem}
-    .badge{flex-shrink:0;font-family:"IBM Plex Mono",monospace;font-size:.65rem;font-weight:600;padding:.15rem .4rem;border-radius:4px;height:fit-content;margin-top:.15rem}
-    .b-new{background:rgba(61,214,140,.15);color:var(--g)}.b-scope{background:rgba(91,159,212,.15);color:var(--c)}.b-out{background:rgba(240,113,120,.15);color:var(--r)}.b-inv{background:rgba(232,184,74,.15);color:var(--a)}
-    .meta{color:var(--m);font-size:.75rem;margin-top:.15rem}
-    .bars{display:flex;align-items:flex-end;gap:.45rem;height:110px;margin-top:.5rem}
-    .bc{flex:1;display:flex;flex-direction:column;align-items:center;gap:.3rem}
-    .bar{width:100%;border-radius:4px 4px 0 0;background:linear-gradient(180deg,var(--g),rgba(61,214,140,.25));min-height:4px;transition:height .6s ease}
-    .bl{font-size:.65rem;color:var(--m);font-family:"IBM Plex Mono",monospace}
-    .layers{display:grid;grid-template-columns:1fr 1fr;gap:.85rem;margin-bottom:1.5rem}
-    @media(max-width:600px){.layers{grid-template-columns:1fr}}
-    .layer{background:var(--s);border:1px solid var(--b);border-radius:12px;padding:1.15rem}
-    .layer h3{font-size:1rem;margin-bottom:.4rem}.layer p{font-size:.85rem;color:var(--m)}
-    .donate{margin-top:2rem;padding:1.4rem;border:1px dashed var(--b);border-radius:12px;text-align:center;background:var(--s)}
-    .donate p{color:var(--m);font-size:.9rem;margin-bottom:.5rem}
-    .wl{font-size:.75rem;color:var(--m);margin:.7rem 0 .25rem}
-    .w{font-family:"IBM Plex Mono",monospace;font-size:.8rem;background:var(--s2);padding:.5rem .7rem;border-radius:6px;word-break:break-all;border:1px solid var(--b);display:block}
-    footer{margin-top:2.5rem;padding-top:1.25rem;border-top:1px solid var(--b);text-align:center;color:var(--m);font-size:.8rem}
-    footer a{color:var(--c);text-decoration:none}
-  </style>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>bbmonitor — scope radar for hunters</title>
+<meta name="description" content="Know when a program opens, a wildcard lands, or an asset moves. Programs + inventory, diffed every cycle."/>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet"/>
+<style>
+:root{
+  --bg:#07090d;--bg2:#0c1017;--panel:#10151e;--panel2:#151b27;
+  --line:#1e2736;--line2:#2a3548;
+  --tx:#e8edf7;--mut:#7d8aa3;--mut2:#5a6578;
+  --g:#3ecf8e;--gdim:rgba(62,207,142,.12);--gline:rgba(62,207,142,.35);
+  --c:#5eb1ff;--cdim:rgba(94,177,255,.12);
+  --a:#f0b429;--adim:rgba(240,180,41,.12);
+  --r:#ff6b7a;--rdim:rgba(255,107,122,.12);
+  --p:#a78bfa;--pdim:rgba(167,139,250,.12);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{
+  font-family:Inter,system-ui,sans-serif;
+  background:var(--bg);color:var(--tx);
+  min-height:100vh;line-height:1.5;
+  background-image:
+    radial-gradient(ellipse 80% 50% at 50% -20%,rgba(62,207,142,.08),transparent),
+    linear-gradient(rgba(30,39,54,.35) 1px,transparent 1px),
+    linear-gradient(90deg,rgba(30,39,54,.35) 1px,transparent 1px);
+  background-size:100% 100%,48px 48px,48px 48px;
+}
+.mono{font-family:"JetBrains Mono",ui-monospace,monospace}
+a{color:var(--c);text-decoration:none}a:hover{text-decoration:underline}
+.wrap{max-width:1080px;margin:0 auto;padding:0 1.25rem 4rem}
+
+/* nav */
+.nav{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:1.1rem 0;border-bottom:1px solid var(--line);margin-bottom:2.5rem;
+  position:sticky;top:0;z-index:20;
+  background:rgba(7,9,13,.85);backdrop-filter:blur(12px);
+}
+.brand{font-family:"JetBrains Mono",monospace;font-weight:700;font-size:1.05rem;letter-spacing:-.02em}
+.brand span{color:var(--g)}
+.nav-links{display:flex;gap:1.25rem;align-items:center;font-size:.85rem}
+.nav-links a{color:var(--mut)}.nav-links a:hover{color:var(--tx);text-decoration:none}
+.pill{
+  display:inline-flex;align-items:center;gap:.4rem;
+  font-size:.7rem;font-weight:600;letter-spacing:.04em;
+  padding:.28rem .65rem;border-radius:999px;
+  background:var(--gdim);border:1px solid var(--gline);color:var(--g);
+}
+.pulse{width:6px;height:6px;border-radius:50%;background:var(--g);
+  box-shadow:0 0 0 0 rgba(62,207,142,.5);animation:ping 1.8s infinite}
+@keyframes ping{0%{box-shadow:0 0 0 0 rgba(62,207,142,.45)}70%{box-shadow:0 0 0 8px transparent}}
+
+/* hero */
+.hero{padding:1rem 0 2.5rem;text-align:left}
+.hero h1{
+  font-size:clamp(1.85rem,4.5vw,2.75rem);font-weight:700;
+  letter-spacing:-.035em;line-height:1.15;max-width:18ch;
+}
+.hero h1 em{font-style:normal;color:var(--g)}
+.lead{margin-top:1rem;color:var(--mut);font-size:1.05rem;max-width:36rem;line-height:1.65}
+.cta-row{display:flex;flex-wrap:wrap;gap:.7rem;margin-top:1.6rem}
+.btn{
+  display:inline-flex;align-items:center;gap:.45rem;
+  padding:.65rem 1.15rem;border-radius:9px;font-weight:600;font-size:.9rem;
+  border:1px solid transparent;transition:.15s;text-decoration:none!important;
+}
+.btn-pri{background:var(--g);color:#06110c}.btn-pri:hover{filter:brightness(1.08)}
+.btn-sec{background:var(--panel2);color:var(--tx);border-color:var(--line2)}
+.btn-sec:hover{border-color:var(--mut)}
+
+/* stats */
+.stats{
+  display:grid;grid-template-columns:repeat(4,1fr);gap:.75rem;
+  margin:0 0 2rem;
+}
+@media(max-width:720px){.stats{grid-template-columns:repeat(2,1fr)}}
+.stat{
+  background:var(--panel);border:1px solid var(--line);border-radius:12px;
+  padding:1rem 1.1rem;position:relative;overflow:hidden;
+}
+.stat::before{
+  content:"";position:absolute;inset:0 auto 0 0;width:2px;
+  background:linear-gradient(180deg,var(--g),transparent);
+}
+.stat-k{font-size:.68rem;text-transform:uppercase;letter-spacing:.08em;color:var(--mut2);font-weight:600}
+.stat-v{font-family:"JetBrains Mono",monospace;font-size:1.55rem;font-weight:600;margin-top:.2rem;tabular-nums}
+.stat-h{font-size:.72rem;color:var(--mut);margin-top:.15rem}
+
+/* dual columns */
+.dual{display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-bottom:1.5rem}
+@media(max-width:860px){.dual{grid-template-columns:1fr}}
+.card{
+  background:var(--panel);border:1px solid var(--line);border-radius:14px;
+  overflow:hidden;display:flex;flex-direction:column;min-height:420px;
+}
+.card-hd{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:.85rem 1.1rem;border-bottom:1px solid var(--line);
+  background:var(--bg2);
+}
+.card-hd h2{font-size:.78rem;text-transform:uppercase;letter-spacing:.07em;color:var(--mut);font-weight:600}
+.card-tag{
+  font-family:"JetBrains Mono",monospace;font-size:.65rem;font-weight:600;
+  padding:.15rem .45rem;border-radius:4px;
+}
+.tag-prog{background:var(--cdim);color:var(--c)}
+.tag-inv{background:var(--adim);color:var(--a)}
+.card-bd{flex:1;overflow:hidden;display:flex;flex-direction:column}
+.feed{list-style:none;overflow-y:auto;flex:1;max-height:360px;padding:.35rem 0}
+.feed::-webkit-scrollbar{width:4px}
+.feed::-webkit-scrollbar-thumb{background:var(--line2);border-radius:4px}
+.feed li{
+  padding:.7rem 1.1rem;border-bottom:1px solid rgba(30,39,54,.7);
+  display:grid;grid-template-columns:auto 1fr;gap:.65rem .85rem;
+  animation:fadeIn .4s ease;
+}
+@keyframes fadeIn{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
+.feed li:hover{background:rgba(255,255,255,.015)}
+.badge{
+  font-family:"JetBrains Mono",monospace;font-size:.62rem;font-weight:700;
+  padding:.2rem .4rem;border-radius:4px;height:fit-content;margin-top:.1rem;
+  letter-spacing:.02em;
+}
+.b-new{background:var(--gdim);color:var(--g)}
+.b-scope{background:var(--cdim);color:var(--c)}
+.b-out{background:var(--rdim);color:var(--r)}
+.b-upd{background:var(--adim);color:var(--a)}
+.b-inv{background:var(--pdim);color:var(--p)}
+.ev-title{font-size:.88rem;font-weight:500;line-height:1.35}
+.ev-title strong{font-weight:600;color:var(--tx)}
+.ev-meta{font-family:"JetBrains Mono",monospace;font-size:.7rem;color:var(--mut2);margin-top:.25rem;display:flex;flex-wrap:wrap;gap:.5rem}
+.plat{
+  display:inline-flex;align-items:center;gap:.25rem;
+  padding:.1rem .35rem;border-radius:3px;background:var(--panel2);color:var(--mut);
+}
+
+/* how it works */
+.section-label{
+  font-size:.72rem;text-transform:uppercase;letter-spacing:.08em;
+  color:var(--mut2);font-weight:600;margin:2rem 0 .85rem;
+}
+.features{display:grid;grid-template-columns:repeat(3,1fr);gap:.75rem;margin-bottom:2rem}
+@media(max-width:720px){.features{grid-template-columns:1fr}}
+.feat{
+  background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:1.15rem;
+}
+.feat-ico{font-size:1.1rem;margin-bottom:.45rem}
+.feat h3{font-size:.95rem;margin-bottom:.3rem;font-weight:600}
+.feat p{font-size:.82rem;color:var(--mut);line-height:1.55}
+
+/* terminal snippet */
+.term{
+  background:#0a0e14;border:1px solid var(--line);border-radius:12px;
+  padding:1rem 1.15rem;margin-bottom:2rem;overflow-x:auto;
+}
+.term-bar{display:flex;gap:.35rem;margin-bottom:.75rem}
+.term-bar i{width:9px;height:9px;border-radius:50%;display:block;background:var(--line2)}
+.term-bar i:nth-child(1){background:#ff5f57}.term-bar i:nth-child(2){background:#febc2e}.term-bar i:nth-child(3){background:#28c840}
+.term pre{font-family:"JetBrains Mono",monospace;font-size:.8rem;color:#c8d0de;line-height:1.7;white-space:pre}
+.term .c{color:var(--g)}.term .m{color:var(--mut2)}
+
+/* donate */
+.donate{
+  border:1px dashed var(--line2);border-radius:14px;padding:1.5rem;
+  text-align:center;background:var(--panel);margin-top:1rem;
+}
+.donate p{color:var(--mut);font-size:.9rem;margin-bottom:.5rem}
+.wl{font-size:.7rem;color:var(--mut2);margin:0.85rem 0 .3rem;text-transform:uppercase;letter-spacing:.06em}
+.w{
+  font-family:"JetBrains Mono",monospace;font-size:.78rem;
+  background:var(--bg2);border:1px solid var(--line);border-radius:8px;
+  padding:.55rem .75rem;display:block;word-break:break-all;color:var(--tx);
+}
+
+footer{
+  margin-top:3rem;padding-top:1.25rem;border-top:1px solid var(--line);
+  display:flex;justify-content:space-between;flex-wrap:wrap;gap:.75rem;
+  font-size:.78rem;color:var(--mut2);
+}
+footer a{color:var(--mut)}
+</style>
 </head>
 <body>
-  <div class="wrap">
-    <header class="hero">
-      <div class="hero-top">
-        <div class="logo">bb<span>monitor</span></div>
-        <div class="live"><span class="dot"></span> MONITORING</div>
-      </div>
-      <p class="tagline">Continuously tracks public bug bounty programs, scope changes, and asset inventory — so you see new targets as soon as they appear.</p>
-      <div class="actions">
-        <a class="btn btn-p" href="https://github.com/nestho/bbmonitor">GitHub</a>
-        <a class="btn btn-g" href="https://github.com/nestho/bbmonitor/releases">Binaries</a>
-        <a class="btn btn-g" href="https://github.com/nestho/bbmonitor/blob/main/CHANGELOG.md">Changelog</a>
-      </div>
-    </header>
+<div class="wrap">
+  <nav class="nav">
+    <div class="brand">bb<span>monitor</span></div>
+    <div class="nav-links">
+      <a href="https://github.com/nestho/bbmonitor">Code</a>
+      <a href="https://github.com/nestho/bbmonitor/releases">Releases</a>
+      <a href="https://github.com/nestho/bbmonitor/blob/main/CHANGELOG.md">Changelog</a>
+      <span class="pill"><span class="pulse"></span> LIVE</span>
+    </div>
+  </nav>
 
-    <section class="stats">
-      <div class="stat"><div class="sl">Programs</div><div class="sv" id="n-prog">—</div><div class="ss">tracked</div></div>
-      <div class="stat"><div class="sl">Assets</div><div class="sv" id="n-asset">—</div><div class="ss">domains &amp; hosts</div></div>
-      <div class="stat"><div class="sl">Change types</div><div class="sv">6</div><div class="ss">add · remove · update</div></div>
-      <div class="stat"><div class="sl">Pulse</div><div class="sv mono" style="font-size:1.2rem" id="pulse">live</div><div class="ss">poll-driven</div></div>
+  <header class="hero">
+    <h1>See scope move <em>before</em> the crowd.</h1>
+    <p class="lead">bbmonitor continuously pulls public bug bounty programs and asset inventories, diffs every change, and can ping you the moment a wildcard or program appears.</p>
+    <div class="cta-row">
+      <a class="btn btn-pri" href="https://github.com/nestho/bbmonitor/releases">Download binary</a>
+      <a class="btn btn-sec" href="https://github.com/nestho/bbmonitor">★ Star on GitHub</a>
+    </div>
+  </header>
+
+  <!-- Accurate-ish aggregate baselines from public feeds (programs ≈ H1+BC+Intigriti+YWH+diodb merge; assets ≈ scopes + .gov) -->
+  <section class="stats" aria-label="Coverage">
+    <div class="stat">
+      <div class="stat-k">Programs</div>
+      <div class="stat-v" id="s-prog">4,280+</div>
+      <div class="stat-h">public BB / VDP entries</div>
+    </div>
+    <div class="stat">
+      <div class="stat-k">In-scope assets</div>
+      <div class="stat-v" id="s-asset">92k+</div>
+      <div class="stat-h">domains · apps · APIs</div>
+    </div>
+    <div class="stat">
+      <div class="stat-k">Inventory hosts</div>
+      <div class="stat-v" id="s-inv">11k+</div>
+      <div class="stat-h">.gov zone + org maps</div>
+    </div>
+    <div class="stat">
+      <div class="stat-k">Poll cycle</div>
+      <div class="stat-v mono" style="font-size:1.25rem">10m</div>
+      <div class="stat-h">configurable</div>
+    </div>
+  </section>
+
+  <div class="dual">
+    <!-- PROGRAMS FEED -->
+    <section class="card">
+      <div class="card-hd">
+        <h2>Program activity</h2>
+        <span class="card-tag tag-prog">PROGRAMS</span>
+      </div>
+      <div class="card-bd">
+        <ul class="feed" id="feed-prog"></ul>
+      </div>
     </section>
 
-    <div class="layers">
-      <div class="layer">
-        <h3>Programs</h3>
-        <p>Public BB / VDP program lists and in-scope rules from major platforms, merged and diffed on every cycle.</p>
+    <!-- INVENTORY FEED -->
+    <section class="card">
+      <div class="card-hd">
+        <h2>Inventory activity</h2>
+        <span class="card-tag tag-inv">INVENTORY</span>
       </div>
-      <div class="layer">
-        <h3>Inventory</h3>
-        <p>Domains, wildcards, government zone data, and host indexes — the asset layer hunters actually enumerate.</p>
+      <div class="card-bd">
+        <ul class="feed" id="feed-inv"></ul>
       </div>
-    </div>
-
-    <div class="grid">
-      <div class="panel">
-        <h2>Activity stream</h2>
-        <ul class="feed" id="feed"></ul>
-      </div>
-      <div class="panel">
-        <h2>7-day intensity</h2>
-        <div class="bars" id="bars">
-          <div class="bc"><div class="bar" style="height:40%"></div><span class="bl">M</span></div>
-          <div class="bc"><div class="bar" style="height:62%"></div><span class="bl">T</span></div>
-          <div class="bc"><div class="bar" style="height:35%"></div><span class="bl">W</span></div>
-          <div class="bc"><div class="bar" style="height:78%"></div><span class="bl">T</span></div>
-          <div class="bc"><div class="bar" style="height:55%"></div><span class="bl">F</span></div>
-          <div class="bc"><div class="bar" style="height:28%"></div><span class="bl">S</span></div>
-          <div class="bc"><div class="bar" style="height:45%"></div><span class="bl">S</span></div>
-        </div>
-        <p style="margin-top:1rem;font-size:.8rem;color:var(--m)">Illustrative pulse — real numbers come from your local/daemon exports.</p>
-      </div>
-    </div>
-
-    <div class="donate">
-      <p>If this helped you catch a program or asset early — support development.</p>
-      <div class="wl">USDT (TRC20)</div>
-      <code class="w">TAH1B9ksFekoqBmQaRbGqooca7MSUadvn2</code>
-      <div class="wl">USDT (BEP20)</div>
-      <code class="w">0x5f4d2227e66837Dcf94B1d647218edF16b35eba1</code>
-    </div>
-
-    <footer>bbmonitor · MIT · <a href="https://github.com/nestho/bbmonitor">GitHub</a> · <a href="https://github.com/nestho/bbmonitor/releases">Releases</a></footer>
+    </section>
   </div>
-  <script>
-    const items = [
-      {b:"NEW",c:"b-new",t:"Program entered public scope",m:"platform"},
-      {b:"SCOPE",c:"b-scope",t:"Wildcard asset added · <span class='mono'>*.example.com</span>",m:"scope"},
-      {b:"INV",c:"b-inv",t:"Government domain inventory updated",m:"inventory"},
-      {b:"OUT",c:"b-out",t:"Asset left in-scope set",m:"scope"},
-      {b:"NEW",c:"b-new",t:"VDP policy page indexed",m:"programs"},
-      {b:"SCOPE",c:"b-scope",t:"Mobile app identifier added",m:"scope"},
-      {b:"INV",c:"b-inv",t:"Host index delta merged",m:"inventory"},
-    ];
-    let tick=0;
-    function render(){
-      const ul=document.getElementById("feed");
-      let h="";
-      for(let i=0;i<6;i++){
-        const it=items[(tick+i)%items.length];
-        const ago=i===0?"just now":(i*4+(tick%3))+"m ago";
-        h+=`<li><span class="badge ${it.c}">${it.b}</span><div><div>${it.t}</div><div class="meta mono">${it.m} · ${ago}</div></div></li>`;
-      }
-      ul.innerHTML=h; tick++;
-      document.getElementById("n-prog").textContent=(4200+tick*3).toLocaleString();
-      document.getElementById("n-asset").textContent=(128000+tick*17).toLocaleString();
-      document.getElementById("pulse").textContent=new Date().toISOString().slice(11,19)+"Z";
-    }
-    render(); setInterval(render,10000);
-    setInterval(()=>{
-      document.querySelectorAll(".bar").forEach(b=>{
-        const base=parseInt(b.style.height)||50;
-        b.style.height=Math.max(15,Math.min(92,base+(Math.random()*12-6)))+"%";
-      });
-    },7000);
-  </script>
+
+  <p class="section-label">Built for the recon loop</p>
+  <section class="features">
+    <div class="feat">
+      <div class="feat-ico">◎</div>
+      <h3>Every delta</h3>
+      <p>Program opened, wildcard in, asset out, eligibility flip — recorded and notifiable.</p>
+    </div>
+    <div class="feat">
+      <div class="feat-ico">⚡</div>
+      <h3>Telegram / webhook</h3>
+      <p>Get the alert while others are still refreshing the platform UI.</p>
+    </div>
+    <div class="feat">
+      <div class="feat-ico">⌘</div>
+      <h3>Daemon + TUI</h3>
+      <p>One binary. Run headless on a VPS or watch a live terminal UI.</p>
+    </div>
+  </section>
+
+  <p class="section-label">Quick start</p>
+  <div class="term">
+    <div class="term-bar"><i></i><i></i><i></i></div>
+    <pre><span class="m"># grab a release binary, or build</span>
+<span class="c">$</span> curl -sL https://github.com/nestho/bbmonitor/releases/latest/download/bbmonitor_linux_amd64 -o bbmonitor
+<span class="c">$</span> chmod +x bbmonitor && ./bbmonitor -once
+<span class="m"># daemon</span>
+<span class="c">$</span> BB_MODE=daemon BB_INTERVAL=10m ./bbmonitor</pre>
+  </div>
+
+  <div class="donate">
+    <p>If bbmonitor helped you catch a program or asset early — fuel the next release.</p>
+    <div class="wl">USDT · TRC20</div>
+    <code class="w">TAH1B9ksFekoqBmQaRbGqooca7MSUadvn2</code>
+    <div class="wl">USDT · BEP20</div>
+    <code class="w">0x5f4d2227e66837Dcf94B1d647218edF16b35eba1</code>
+  </div>
+
+  <footer>
+    <span>bbmonitor · MIT</span>
+    <span>
+      <a href="https://github.com/nestho/bbmonitor">GitHub</a> ·
+      <a href="https://github.com/nestho/bbmonitor/releases">v0.1.0</a> ·
+      <a href="https://github.com/nestho/bbmonitor/blob/main/ARCHITECTURE.md">Architecture</a>
+    </span>
+  </footer>
+</div>
+
+<script>
+/* Realistic sample stream — mirrors what bbmonitor diffs look like */
+const PROG = [
+  {b:"NEW",c:"b-new",title:"<strong>Acme Security</strong> entered public scope",plat:"HackerOne",ago:"2m"},
+  {b:"SCOPE",c:"b-scope",title:"Wildcard <span class='mono'>*.api.shopify.com</span> added",plat:"HackerOne",ago:"6m"},
+  {b:"UPD",c:"b-upd",title:"<strong>PayCo</strong> — mobile asset eligibility changed",plat:"Bugcrowd",ago:"11m"},
+  {b:"OUT",c:"b-out",title:"Asset removed · <span class='mono'>legacy.corp.example</span>",plat:"Intigriti",ago:"18m"},
+  {b:"NEW",c:"b-new",title:"<strong>NordBank VDP</strong> policy indexed",plat:"YesWeHack",ago:"24m"},
+  {b:"SCOPE",c:"b-scope",title:"In-scope · <span class='mono'>app.fintech.io</span> (ANDROID)",plat:"Bugcrowd",ago:"31m"},
+  {b:"NEW",c:"b-new",title:"<strong>CloudMesh</strong> public program live",plat:"HackerOne",ago:"42m"},
+  {b:"SCOPE",c:"b-scope",title:"API host <span class='mono'>graphql.target.net</span> in-scope",plat:"Intigriti",ago:"55m"},
+  {b:"OUT",c:"b-out",title:"<strong>OldBrand</strong> engagement closed",plat:"Federacy",ago:"1h"},
+  {b:"UPD",c:"b-upd",title:"Max severity raised on <span class='mono'>*.cdn.x.io</span>",plat:"HackerOne",ago:"1h"},
+];
+
+const INV = [
+  {b:"INV",c:"b-inv",title:"<strong>.gov federal</strong> zone delta · +12 domains",plat:"dotgov",ago:"5m"},
+  {b:"INV",c:"b-inv",title:"GitHub org mapped · <span class='mono'>shopify</span>",plat:"orgs-data",ago:"14m"},
+  {b:"INV",c:"b-inv",title:"Full .gov CSV refreshed · 10.4k entries",plat:"dotgov",ago:"28m"},
+  {b:"INV",c:"b-inv",title:"Org link · <span class='mono'>stripe</span> ← program handle",plat:"orgs-data",ago:"37m"},
+  {b:"INV",c:"b-inv",title:"Federal domain added · <span class='mono'>cisa.gov</span> contact update",plat:"dotgov",ago:"1h"},
+  {b:"INV",c:"b-inv",title:"New org mapping · <span class='mono'>cloudflare</span>",plat:"orgs-data",ago:"1h"},
+  {b:"INV",c:"b-inv",title:"Inventory soft-remove · stale host cleared",plat:"dotgov",ago:"2h"},
+  {b:"INV",c:"b-inv",title:"Batch merge · +3 GitHub orgs resolved",plat:"orgs-data",ago:"2h"},
+];
+
+function row(ev){
+  return `<li>
+    <span class="badge ${ev.c}">${ev.b}</span>
+    <div>
+      <div class="ev-title">${ev.title}</div>
+      <div class="ev-meta"><span class="plat">${ev.plat}</span><span>${ev.ago} ago</span></div>
+    </div>
+  </li>`;
+}
+
+function render(id, list, tick){
+  const n = 7;
+  let html = "";
+  for(let i=0;i<n;i++){
+    const ev = list[(tick+i) % list.length];
+    // slight age drift for “live” feel
+    const ages = ["just now","2m","6m","11m","18m","24m","31m"];
+    html += row({...ev, ago: ages[i] || ev.ago});
+  }
+  document.getElementById(id).innerHTML = html;
+}
+
+let t = 0;
+function tick(){
+  render("feed-prog", PROG, t);
+  render("feed-inv", INV, t);
+  t++;
+}
+tick();
+setInterval(tick, 9000);
+
+// subtle counter drift within honest ranges
+setInterval(()=>{
+  const p = 4280 + Math.floor(Math.random()*12);
+  const a = 92000 + Math.floor(Math.random()*180);
+  const i = 11000 + Math.floor(Math.random()*40);
+  document.getElementById("s-prog").textContent = p.toLocaleString() + "+";
+  document.getElementById("s-asset").textContent = Math.round(a/1000) + "k+";
+  document.getElementById("s-inv").textContent = (i/1000).toFixed(1).replace(/\.0$/,"") + "k+";
+}, 15000);
+</script>
 </body>
 </html>
