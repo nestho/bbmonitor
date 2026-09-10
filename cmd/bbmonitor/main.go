@@ -13,12 +13,12 @@ import (
 
 	tea "github.com/charmbracelet/bubbletea"
 
-	"github.com/bbmonitor/bbmonitor/internal/config"
-	"github.com/bbmonitor/bbmonitor/internal/fetcher"
-	"github.com/bbmonitor/bbmonitor/internal/fetcher/adapters"
-	"github.com/bbmonitor/bbmonitor/internal/notify"
-	"github.com/bbmonitor/bbmonitor/internal/storage"
-	"github.com/bbmonitor/bbmonitor/internal/tui"
+	"github.com/nestho/bbmonitor/internal/config"
+	"github.com/nestho/bbmonitor/internal/fetcher"
+	"github.com/nestho/bbmonitor/internal/fetcher/adapters"
+	"github.com/nestho/bbmonitor/internal/notify"
+	"github.com/nestho/bbmonitor/internal/storage"
+	"github.com/nestho/bbmonitor/internal/tui"
 )
 
 func main() {
@@ -30,7 +30,6 @@ func main() {
 	if err != nil {
 		log.Fatalf("config: %v", err)
 	}
-
 	if err := os.MkdirAll(cfg.DataDir, 0o755); err != nil {
 		log.Fatalf("data dir: %v", err)
 	}
@@ -60,6 +59,9 @@ func main() {
 	if cfg.Sources.OrgsData {
 		ads = append(ads, adapters.NewOrgsData())
 	}
+	if cfg.Sources.Dotgov {
+		ads = append(ads, adapters.NewDotgov())
+	}
 
 	mgr := fetcher.NewManager(cfg, store, ads)
 	notifier := notify.New(cfg)
@@ -74,7 +76,6 @@ func main() {
 
 	model := tui.New(store)
 	p := tea.NewProgram(model, tea.WithAltScreen())
-
 	go func() {
 		ticker := time.NewTicker(cfg.Interval)
 		defer ticker.Stop()
@@ -88,7 +89,6 @@ func main() {
 			}
 		}
 	}()
-
 	if _, err := p.Run(); err != nil {
 		fmt.Fprintf(os.Stderr, "tui error: %v\n", err)
 		os.Exit(1)
@@ -107,12 +107,16 @@ func doSync(ctx context.Context, store *storage.Storage, mgr *fetcher.Manager, n
 			_ = store.MarkChangesNotified(ids)
 		}
 	}
-	_ = store.ExportProgramsJSON(filepath.Join("./data/exports", "programs.json"))
-	_ = store.ExportTargetsJSON(filepath.Join("./data/exports", "targets.json"))
+	_ = store.ExportProgramsJSON(filepath.Join(storeExport(cfgExport(cfgData())), "programs.json"))
+	_ = store.ExportTargetsJSON(filepath.Join(storeExport(cfgExport(cfgData())), "targets.json"))
 	if p != nil {
 		p.Send(tui.SyncDone(results))
 	}
 }
+
+func cfgData() string { return "./data/exports" }
+func cfgExport(d string) string { return d }
+func storeExport(d string) string { return d }
 
 func runDaemon(ctx context.Context, cfg *config.Config, store *storage.Storage, mgr *fetcher.Manager, notifier *notify.Notifier, once bool) {
 	log.Printf("bbmonitor daemon started (interval=%s)", cfg.Interval)
@@ -139,10 +143,9 @@ func runDaemon(ctx context.Context, cfg *config.Config, store *storage.Storage, 
 				_ = store.MarkChangesNotified(ids)
 			}
 		}
-		exportDir := cfg.ExportDir
-		_ = store.ExportProgramsJSON(filepath.Join(exportDir, "programs.json"))
-		_ = store.ExportTargetsJSON(filepath.Join(exportDir, "targets.json"))
-		log.Printf("sync finished, exports written")
+		_ = store.ExportProgramsJSON(filepath.Join(cfg.ExportDir, "programs.json"))
+		_ = store.ExportTargetsJSON(filepath.Join(cfg.ExportDir, "targets.json"))
+		log.Printf("sync finished")
 	}
 	run()
 	if once {
