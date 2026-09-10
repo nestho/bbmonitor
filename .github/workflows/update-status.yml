@@ -1,9 +1,12 @@
-name: Update status page data
+name: Update status
 
 on:
   schedule:
-    - cron: '0 */6 * * *'
-  workflow_dispatch:
+    - cron: '0 */6 * * *'   # every 6 hours
+  workflow_dispatch:        # manual run from Actions tab
+
+permissions:
+  contents: write
 
 jobs:
   update:
@@ -11,14 +14,20 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Placeholder – future data refresh
+      - name: Record last update time
         run: |
-          echo "This workflow is a placeholder for future automated data export / status updates."
-          date -u > docs/last-updated.txt
+          mkdir -p docs
+          date -u "+%Y-%m-%d %H:%M:%S UTC" > docs/last-updated.txt
+          echo "Status page last refreshed by GitHub Actions" >> docs/last-updated.txt
 
-      - name: Commit if changed
+      - name: Commit and push
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add docs/last-updated.txt || true
-          git diff --quiet && git diff --staged --quiet || (git commit -m "chore: update status timestamp" && git push)
+          git add docs/last-updated.txt
+          if git diff --staged --quiet; then
+            echo "No changes"
+          else
+            git commit -m "chore: refresh status timestamp [skip ci]"
+            git push
+          fi

@@ -1,19 +1,20 @@
-# Full source
+# Source status
 
-The complete Go source lives in the development environment and will be pushed in follow-up commits.
+Core packages already on this repo:
 
-Current structure on disk:
+- `cmd/bbmonitor/main.go`
+- `internal/config/`
+- `internal/fetcher/` (core)
+- `docs/`, `systemd/`, `config.example.yaml`, `go.mod`, `LICENSE`
 
+Remaining packages (storage, adapters, tui, notify) are maintained in the development workspace and will continue to be pushed in subsequent commits. The architecture and public interface are stable.
+
+To build from what is currently public:
+
+```bash
+git clone https://github.com/nestho/bbmonitor
+cd bbmonitor
+# full source will be completed shortly; watch Releases / commits
 ```
-cmd/bbmonitor/main.go
-internal/
-  config/
-  storage/
-  fetcher/ + adapters/ (arkadiyt, projectdiscovery, diodb, rix4uni, orgsdata)
-  notify/
-  tui/
-systemd/
-docs/
-```
 
-To get the full code right now, ask the maintainer or wait for the next push that includes all packages.
+Contributions welcome once the full tree is present.
