@@ -46,7 +46,7 @@ func (a *DiodbAdapter) Fetch(ctx context.Context, st *storage.Storage, client *h
 		handle := sanitizeHandle(e.ProgramName)
 		offers := strings.ToLower(e.OffersBounty) == "yes" || strings.ToLower(e.OffersBounty) == "partial"
 		raw, _ := json.Marshal(e)
-		prog := &storage.Program{Source: a.Name(), Handle: handle, Name: e.ProgramName, URL: e.PolicyURL, OffersBounty: offers, Platform: "disclose", RawJSON: string(raw)}
+		prog := &storage.Program{Source: a.Name(), Handle: handle, Name: e.ProgramName, URL: e.PolicyURL, OffersBounty: offers, Platform: "disclose", Layer: "program", RawJSON: string(raw)}
 		_, isNew, err := st.UpsertProgram(prog)
 		if err != nil {
 			continue

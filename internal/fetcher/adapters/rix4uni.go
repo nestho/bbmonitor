@@ -7,8 +7,8 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/bbmonitor/bbmonitor/internal/fetcher"
-	"github.com/bbmonitor/bbmonitor/internal/storage"
+	"github.com/nestho/bbmonitor/internal/fetcher"
+	"github.com/nestho/bbmonitor/internal/storage"
 )
 
 const rix4uniProgramsURL = "https://raw.githubusercontent.com/rix4uni/scope/main/programs.json"
@@ -16,17 +16,15 @@ const rix4uniProgramsURL = "https://raw.githubusercontent.com/rix4uni/scope/main
 type Rix4uniAdapter struct{}
 
 func NewRix4uni() *Rix4uniAdapter { return &Rix4uniAdapter{} }
-
 func (a *Rix4uniAdapter) Name() string { return "rix4uni" }
 
 type rixProgram struct {
-	Name     string          `json:"name"`
-	URL      string          `json:"url"`
-	Handle   string          `json:"handle"`
-	Platform string          `json:"platform"`
-	Bounty   bool            `json:"bounty"`
-	Domains  []string        `json:"domains"`
-	Targets  json.RawMessage `json:"targets"`
+	Name     string   `json:"name"`
+	URL      string   `json:"url"`
+	Handle   string   `json:"handle"`
+	Platform string   `json:"platform"`
+	Bounty   bool     `json:"bounty"`
+	Domains  []string `json:"domains"`
 }
 
 func (a *Rix4uniAdapter) Fetch(ctx context.Context, st *storage.Storage, client *http.Client) (*fetcher.Result, error) {
@@ -39,15 +37,14 @@ func (a *Rix4uniAdapter) Fetch(ctx context.Context, st *storage.Storage, client 
 	if notMod {
 		return res, nil
 	}
-	res.ETag = etag
-	res.LastModified = lastMod
+	res.ETag, res.LastModified = etag, lastMod
 	var programs []rixProgram
 	if err := json.Unmarshal(body, &programs); err != nil {
 		var wrap struct {
 			Programs []rixProgram `json:"programs"`
 		}
 		if err2 := json.Unmarshal(body, &wrap); err2 != nil {
-			return res, fmt.Errorf("parse rix4uni programs.json: %w", err)
+			return res, fmt.Errorf("parse rix4uni: %w", err)
 		}
 		programs = wrap.Programs
 	}
@@ -64,21 +61,22 @@ func (a *Rix4uniAdapter) Fetch(ctx context.Context, st *storage.Storage, client 
 			handle = sanitizeHandle(name)
 		}
 		raw, _ := json.Marshal(p)
-		prog := &storage.Program{
-			Source: a.Name(), Handle: handle, Name: name, URL: p.URL,
-			OffersBounty: p.Bounty, Platform: firstNonEmpty(p.Platform, "rix4uni"), RawJSON: string(raw),
+		plat := p.Platform
+		if plat == "" {
+			plat = "rix4uni"
 		}
+		prog := &storage.Program{Source: a.Name(), Handle: handle, Name: name, URL: p.URL, OffersBounty: p.Bounty, Platform: plat, Layer: "program", RawJSON: string(raw)}
 		progID, isNew, err := st.UpsertProgram(prog)
 		if err != nil {
 			continue
 		}
 		if isNew {
 			res.ProgramsNew++
-			ch := storage.Change{Source: a.Name(), Kind: "program_added", Entity: handle, Details: fmt.Sprintf(`{"name":%q,"url":%q}`, name, p.URL)}
+			ch := storage.Change{Source: a.Name(), Kind: "program_added", Entity: handle, Details: fmt.Sprintf(`{"name":%q}`, name)}
 			_ = st.RecordChange(&ch)
 			res.Changes = append(res.Changes, ch)
 		}
-		seen := make(map[string]struct{})
+		seen := map[string]struct{}{}
 		for _, d := range p.Domains {
 			d = strings.TrimSpace(d)
 			if d == "" {
@@ -100,13 +98,4 @@ func (a *Rix4uniAdapter) Fetch(ctx context.Context, st *storage.Storage, client 
 		_ = st.MarkMissingTargets(a.Name(), seen, progID)
 	}
 	return res, nil
-}
-
-func firstNonEmpty(vals ...string) string {
-	for _, v := range vals {
-		if v != "" {
-			return v
-		}
-	}
-	return ""
 }

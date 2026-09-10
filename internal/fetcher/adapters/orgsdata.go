@@ -6,8 +6,8 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/bbmonitor/bbmonitor/internal/fetcher"
-	"github.com/bbmonitor/bbmonitor/internal/storage"
+	"github.com/nestho/bbmonitor/internal/fetcher"
+	"github.com/nestho/bbmonitor/internal/storage"
 )
 
 var orgsDataFiles = []string{
@@ -20,7 +20,6 @@ const orgsDataBase = "https://raw.githubusercontent.com/nikitastupin/orgs-data/m
 type OrgsDataAdapter struct{}
 
 func NewOrgsData() *OrgsDataAdapter { return &OrgsDataAdapter{} }
-
 func (a *OrgsDataAdapter) Name() string { return "orgsdata" }
 
 func (a *OrgsDataAdapter) Fetch(ctx context.Context, st *storage.Storage, client *http.Client) (*fetcher.Result, error) {
@@ -32,16 +31,11 @@ func (a *OrgsDataAdapter) Fetch(ctx context.Context, st *storage.Storage, client
 			return res, ctx.Err()
 		default:
 		}
-		url := orgsDataBase + fname
-		body, etag, lastMod, notMod, err := fetcher.Download(ctx, client, url, state.LastETag, state.LastMod)
-		if err != nil {
+		body, etag, lastMod, notMod, err := fetcher.Download(ctx, client, orgsDataBase+fname, state.LastETag, state.LastMod)
+		if err != nil || notMod {
 			continue
 		}
-		if notMod {
-			continue
-		}
-		res.ETag = etag
-		res.LastModified = lastMod
+		res.ETag, res.LastModified = etag, lastMod
 		for _, line := range strings.Split(string(body), "\n") {
 			line = strings.TrimSpace(line)
 			if line == "" || strings.HasPrefix(line, "#") {
@@ -62,10 +56,7 @@ func (a *OrgsDataAdapter) Fetch(ctx context.Context, st *storage.Storage, client
 				handle = sanitizeHandle(segs[len(segs)-1])
 			}
 			raw := fmt.Sprintf(`{"program_url":%q,"github":%q,"file":%q}`, progURL, orgVal, fname)
-			prog := &storage.Program{
-				Source: a.Name(), Handle: handle, Name: handle, URL: progURL,
-				OffersBounty: false, Platform: "orgs-data", RawJSON: raw,
-			}
+			prog := &storage.Program{Source: a.Name(), Handle: handle, Name: handle, URL: progURL, Platform: "orgs-data", Layer: "program", RawJSON: raw}
 			progID, isNew, err := st.UpsertProgram(prog)
 			if err != nil {
 				continue
@@ -84,17 +75,14 @@ func (a *OrgsDataAdapter) Fetch(ctx context.Context, st *storage.Storage, client
 				if asset == "" {
 					continue
 				}
-				t := &storage.Target{
-					ProgramID: progID, Source: a.Name(), AssetIdentifier: asset, AssetType: "GITHUB_ORG",
-					EligibleForBounty: false, EligibleForSubmission: true, InScope: true, RawJSON: raw,
-				}
+				t := &storage.Target{ProgramID: progID, Source: a.Name(), AssetIdentifier: asset, AssetType: "GITHUB_ORG", EligibleForSubmission: true, InScope: true, RawJSON: raw}
 				_, tNew, err := st.UpsertTarget(t)
 				if err != nil {
 					continue
 				}
 				if tNew {
 					res.TargetsNew++
-					ch := storage.Change{Source: a.Name(), Kind: "target_added", Entity: asset, Details: fmt.Sprintf(`{"program":%q,"type":"GITHUB_ORG"}`, handle)}
+					ch := storage.Change{Source: a.Name(), Kind: "target_added", Entity: asset, Details: fmt.Sprintf(`{"program":%q}`, handle)}
 					_ = st.RecordChange(&ch)
 					res.Changes = append(res.Changes, ch)
 				}
