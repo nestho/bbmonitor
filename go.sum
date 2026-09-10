@@ -1,0 +1,12 @@
+github.com/aymanbagabas/go-osc52/v2 v2.0.1 h1:HwpRHbFMcZLEVr42D4p7XBqjyuxQH5Srdquo0R98Cmg=
+github.com/aymanbagabas/go-osc52/v2 v2.0.1/go.mod h1:uYgXzlJ7ZpABp8OJ+exZzJJhRNQ2ASbcXHWsFqH8hp8=
+github.com/charmbracelet/bubbles v0.20.0 h1:jSZu6qD8WR7T0HGf7r2J1m8ZOjgkR+q0wUbbOAc6oI=
+github.com/charmbracelet/bubbles v0.20.0/go.mod h1:39QbFzOk9tA/d5hX8vMt5i0t8l+yY0W8N1e/9vX6k=
+github.com/charmbracelet/bubbletea v1.2.4 h1:Kn0w9xxpM2F5aSYcRTR+lU/Ytgik5u/f5R9Z3fE8z=
+github.com/charmbracelet/bubbletea v1.2.4/go.mod h1:Qr6hn4zB1+O9X2dW8n8sC8v5uE6F0v2sY4v2H9m0=
+github.com/charmbracelet/lipgloss v1.0.0 h1:O7VkGDvqEdGi93X+DeCsK5Cu7Kk5H8O4b0G3c5M5w=
+github.com/charmbracelet/lipgloss v1.0.0/go.mod h1:UUfRY8nbzQ7OaovvXIfdK/yT2dwYkKz2uQd=
+gopkg.in/yaml.v3 v3.0.1 h1:fxVm/GzAzEWqLHuvctI91KS9hhNmmWOoWu0XTYJS7=
+gopkg.in/yaml.v3 v3.0.1/go.mod h1:K4uyk7z7BCEPqu6E+C64Yfv1cQ7kz7rIZviUmN+EgE=
+modernc.org/sqlite v1.34.5 h1:y3x14fZ6p1s9tY9xE0Yk3s0g5/s8G5n8w8p5H8aQ=
+modernc.org/sqlite v1.34.5/go.mod h1:Y4u6n8o9z8q7j2n0F5y5qZ0z2Z2f4l8m8v1f5XwY=
