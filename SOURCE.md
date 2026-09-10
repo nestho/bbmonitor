@@ -1,20 +1,9 @@
-# Source status
-
-Core packages already on this repo:
-
-- `cmd/bbmonitor/main.go`
-- `internal/config/`
-- `internal/fetcher/` (core)
-- `docs/`, `systemd/`, `config.example.yaml`, `go.mod`, `LICENSE`
-
-Remaining packages (storage, adapters, tui, notify) are maintained in the development workspace and will continue to be pushed in subsequent commits. The architecture and public interface are stable.
-
-To build from what is currently public:
+# Building from source
 
 ```bash
-git clone https://github.com/nestho/bbmonitor
+git clone https://github.com/nestho/bbmonitor.git
 cd bbmonitor
-# full source will be completed shortly; watch Releases / commits
+go build -o bbmonitor ./cmd/bbmonitor
 ```
 
-Contributions welcome once the full tree is present.
+Packages under active sync from the development tree: `internal/storage`, `internal/tui`, and fetcher adapters. Core entrypoint, config, fetcher manager, and notify are already present.
