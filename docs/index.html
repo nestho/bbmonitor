@@ -69,7 +69,7 @@
       border: 1px dashed var(--border);
       border-radius: 12px;
     }
-    .donate p { color: var(--muted); margin-bottom: 0.8rem; font-size: 0.95rem; }
+    .donate p { color: var(--muted); margin-bottom: 0.5rem; font-size: 0.95rem; }
     footer {
       text-align: center;
       padding: 1.5rem;
@@ -105,10 +105,11 @@
         <li>Single binary, resume-safe, config via YAML + environment variables</li>
       </ul>
       <a class="cta" href="https://github.com/nestho/bbmonitor">View on GitHub →</a>
+      <a class="cta" style="margin-left:0.5rem;background:#21262d;color:#e6edf3;border:1px solid #30363d" href="https://github.com/nestho/bbmonitor/releases">Releases</a>
     </div>
 
     <div class="card">
-      <h2>Sources (phase 1)</h2>
+      <h2>Sources</h2>
       <ul>
         <li>arkadiyt/bounty-targets-data</li>
         <li>projectdiscovery/public-bugbounty-programs</li>
@@ -122,20 +123,23 @@
       <h2>Quick start</h2>
       <pre style="background:#0d1117;padding:1rem;border-radius:8px;overflow-x:auto;font-size:0.9rem;color:#c9d1d9"><code>go build -o bbmonitor ./cmd/bbmonitor
 cp config.example.yaml config.yaml
-./bbmonitor -once          # one-shot
-./bbmonitor                # TUI
-BB_MODE=daemon ./bbmonitor # background</code></pre>
+./bbmonitor -once
+./bbmonitor
+BB_MODE=daemon ./bbmonitor</code></pre>
     </div>
 
     <div class="donate">
-      <p>If this tool saved you time or helped you find programs faster, consider supporting it.</p>
-      <a class="cta" href="https://github.com/sponsors/nestho" target="_blank" rel="noopener">♥ Sponsor / Donate</a>
-      <p style="margin-top:0.8rem;font-size:0.85rem">or just star the repo — it helps a lot</p>
+      <p>If this tool saved you time, consider supporting development.</p>
+      <p style="font-size:0.9rem;margin:0.8rem 0 0.25rem;color:#8b949e">USDT (TRC20)</p>
+      <code style="display:block;word-break:break-all;background:#21262d;padding:0.5rem 0.7rem;border-radius:6px;font-size:0.85rem">TAH1B9ksFekoqBmQaRbGqooca7MSUadvn2</code>
+      <p style="font-size:0.9rem;margin:1rem 0 0.25rem;color:#8b949e">USDT (BEP20)</p>
+      <code style="display:block;word-break:break-all;background:#21262d;padding:0.5rem 0.7rem;border-radius:6px;font-size:0.85rem">0x5f4d2227e66837Dcf94B1d647218edF16b35eba1</code>
+      <p style="margin-top:1rem;font-size:0.85rem;color:#8b949e">or just <a href="https://github.com/nestho/bbmonitor">star the repo</a> — it helps a lot</p>
     </div>
   </div>
 
   <footer>
-    <p>bbmonitor · MIT License · <a href="https://github.com/nestho/bbmonitor">GitHub</a></p>
+    <p>bbmonitor · MIT License · <a href="https://github.com/nestho/bbmonitor">GitHub</a> · <a href="https://github.com/nestho/bbmonitor/blob/main/CHANGELOG.md">Changelog</a></p>
   </footer>
 </body>
 </html>
