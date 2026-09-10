@@ -9,8 +9,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/bbmonitor/bbmonitor/internal/config"
-	"github.com/bbmonitor/bbmonitor/internal/storage"
+	"github.com/nestho/bbmonitor/internal/config"
+	"github.com/nestho/bbmonitor/internal/storage"
 )
 
 type Notifier struct {
@@ -19,24 +19,18 @@ type Notifier struct {
 }
 
 func New(cfg *config.Config) *Notifier {
-	return &Notifier{
-		cfg: cfg,
-		client: &http.Client{
-			Timeout: 20 * time.Second,
-		},
-	}
+	return &Notifier{cfg: cfg, client: &http.Client{Timeout: 20 * time.Second}}
 }
 
 func (n *Notifier) SendChanges(ctx context.Context, changes []storage.Change) error {
 	if !n.cfg.Notify.Enabled || len(changes) == 0 {
 		return nil
 	}
-	summary := make(map[string]int)
+	summary := map[string]int{}
 	var details []string
 	for _, c := range changes {
 		summary[c.Kind]++
-		line := fmt.Sprintf("• [%s] %s — %s", c.Kind, c.Entity, truncate(c.Details, 120))
-		details = append(details, line)
+		details = append(details, fmt.Sprintf("• [%s] %s — %s", c.Kind, c.Entity, truncate(c.Details, 120)))
 	}
 	var b strings.Builder
 	b.WriteString("🔔 *bbmonitor* — changes detected\n\n")
@@ -44,11 +38,9 @@ func (n *Notifier) SendChanges(ctx context.Context, changes []storage.Change) er
 		b.WriteString(fmt.Sprintf("%s: %d\n", k, v))
 	}
 	b.WriteString("\n")
-	maxLines := 25
-	if len(details) > maxLines {
-		details = details[:maxLines]
-		b.WriteString(strings.Join(details, "\n"))
-		b.WriteString(fmt.Sprintf("\n… and %d more", len(changes)-maxLines))
+	if len(details) > 25 {
+		b.WriteString(strings.Join(details[:25], "\n"))
+		b.WriteString(fmt.Sprintf("\n… and %d more", len(changes)-25))
 	} else {
 		b.WriteString(strings.Join(details, "\n"))
 	}
@@ -72,12 +64,7 @@ func (n *Notifier) SendChanges(ctx context.Context, changes []storage.Change) er
 
 func (n *Notifier) sendTelegram(ctx context.Context, text string) error {
 	url := fmt.Sprintf("https://api.telegram.org/bot%s/sendMessage", n.cfg.Notify.Telegram.BotToken)
-	payload := map[string]interface{}{
-		"chat_id":    n.cfg.Notify.Telegram.ChatID,
-		"text":       text,
-		"parse_mode": "Markdown",
-	}
-	body, _ := json.Marshal(payload)
+	body, _ := json.Marshal(map[string]interface{}{"chat_id": n.cfg.Notify.Telegram.ChatID, "text": text, "parse_mode": "Markdown"})
 	req, err := http.NewRequestWithContext(ctx, http.MethodPost, url, bytes.NewReader(body))
 	if err != nil {
 		return err
@@ -95,14 +82,7 @@ func (n *Notifier) sendTelegram(ctx context.Context, text string) error {
 }
 
 func (n *Notifier) sendWebhook(ctx context.Context, changes []storage.Change, text string) error {
-	payload := map[string]interface{}{
-		"content": text,
-		"text":    text,
-		"changes": changes,
-		"count":   len(changes),
-		"source":  "bbmonitor",
-	}
-	body, _ := json.Marshal(payload)
+	body, _ := json.Marshal(map[string]interface{}{"content": text, "text": text, "changes": changes, "count": len(changes), "source": "bbmonitor"})
 	req, err := http.NewRequestWithContext(ctx, http.MethodPost, n.cfg.Notify.Webhook.URL, bytes.NewReader(body))
 	if err != nil {
 		return err
