@@ -8,8 +8,8 @@ import (
 	"sync"
 	"time"
 
-	"github.com/bbmonitor/bbmonitor/internal/config"
-	"github.com/bbmonitor/bbmonitor/internal/storage"
+	"github.com/nestho/bbmonitor/internal/config"
+	"github.com/nestho/bbmonitor/internal/storage"
 )
 
 type Adapter interface {
@@ -35,22 +35,15 @@ type Manager struct {
 	store    *storage.Storage
 	client   *http.Client
 	adapters []Adapter
-	mu       sync.Mutex
 }
 
 func NewManager(cfg *config.Config, store *storage.Storage, adapters []Adapter) *Manager {
 	return &Manager{
-		cfg:   cfg,
-		store: store,
+		cfg: cfg, store: store, adapters: adapters,
 		client: &http.Client{
 			Timeout: 90 * time.Second,
-			Transport: &http.Transport{
-				MaxIdleConns:        20,
-				IdleConnTimeout:     90 * time.Second,
-				TLSHandshakeTimeout: 15 * time.Second,
-			},
+			Transport: &http.Transport{MaxIdleConns: 20, IdleConnTimeout: 90 * time.Second, TLSHandshakeTimeout: 15 * time.Second},
 		},
-		adapters: adapters,
 	}
 }
 
@@ -86,8 +79,7 @@ func (m *Manager) RunOnce(ctx context.Context) []Result {
 					_ = m.store.UpsertSyncState(&storage.SyncState{Source: j.ad.Name(), Status: "error", LastError: err.Error()})
 				} else {
 					_ = m.store.UpsertSyncState(&storage.SyncState{
-						Source: j.ad.Name(), Status: "success",
-						LastETag: res.ETag, LastMod: res.LastModified,
+						Source: j.ad.Name(), Status: "success", LastETag: res.ETag, LastMod: res.LastModified,
 						LastSuccess: time.Now().UTC(), LastError: "",
 					})
 				}

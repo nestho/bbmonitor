@@ -28,6 +28,7 @@ type Sources struct {
 	Diodb            bool `yaml:"diodb"`
 	Rix4uni          bool `yaml:"rix4uni"`
 	OrgsData         bool `yaml:"orgsdata"`
+	Dotgov           bool `yaml:"dotgov"`
 }
 
 type Notify struct {
@@ -50,25 +51,14 @@ type Webhook struct {
 
 func Default() *Config {
 	return &Config{
-		DataDir:   "./data",
-		DBPath:    "./data/bbmonitor.db",
-		ExportDir: "./data/exports",
-		Interval:  10 * time.Minute,
-		Workers:   6,
+		DataDir: "./data", DBPath: "./data/bbmonitor.db", ExportDir: "./data/exports",
+		Interval: 10 * time.Minute, Workers: 6,
 		Sources: Sources{
-			Arkadiyt:         true,
-			ProjectDiscovery: true,
-			Diodb:            true,
-			Rix4uni:          true,
-			OrgsData:         true,
+			Arkadiyt: true, ProjectDiscovery: true, Diodb: true,
+			Rix4uni: true, OrgsData: true, Dotgov: true,
 		},
-		Notify: Notify{
-			Enabled: true,
-			Telegram: Telegram{Enabled: false},
-			Webhook:  Webhook{Enabled: false, Headers: map[string]string{}},
-		},
-		LogLevel: "info",
-		Mode:     "tui",
+		Notify: Notify{Enabled: true, Telegram: Telegram{Enabled: false}, Webhook: Webhook{Enabled: false, Headers: map[string]string{}}},
+		LogLevel: "info", Mode: "tui",
 	}
 }
 
@@ -80,10 +70,8 @@ func Load(path string) (*Config, error) {
 			if !os.IsNotExist(err) {
 				return nil, fmt.Errorf("read config: %w", err)
 			}
-		} else {
-			if err := yaml.Unmarshal(data, cfg); err != nil {
-				return nil, fmt.Errorf("parse config: %w", err)
-			}
+		} else if err := yaml.Unmarshal(data, cfg); err != nil {
+			return nil, fmt.Errorf("parse config: %w", err)
 		}
 	}
 	applyEnv(cfg)
@@ -114,15 +102,6 @@ func applyEnv(cfg *Config) {
 			cfg.Interval = d
 		}
 	}
-	if v := os.Getenv("BB_WORKERS"); v != "" {
-		var n int
-		if _, err := fmt.Sscanf(v, "%d", &n); err == nil && n > 0 {
-			cfg.Workers = n
-		}
-	}
-	if v := os.Getenv("BB_LOG_LEVEL"); v != "" {
-		cfg.LogLevel = strings.ToLower(v)
-	}
 	if v := os.Getenv("BB_MODE"); v != "" {
 		cfg.Mode = strings.ToLower(v)
 	}
@@ -138,20 +117,8 @@ func applyEnv(cfg *Config) {
 		cfg.Notify.Webhook.URL = v
 		cfg.Notify.Webhook.Enabled = true
 	}
-	if v := os.Getenv("BB_SOURCE_ARKADIYT"); v != "" {
-		cfg.Sources.Arkadiyt = truthy(v)
-	}
-	if v := os.Getenv("BB_SOURCE_PROJECTDISCOVERY"); v != "" {
-		cfg.Sources.ProjectDiscovery = truthy(v)
-	}
-	if v := os.Getenv("BB_SOURCE_DIODB"); v != "" {
-		cfg.Sources.Diodb = truthy(v)
-	}
-	if v := os.Getenv("BB_SOURCE_RIX4UNI"); v != "" {
-		cfg.Sources.Rix4uni = truthy(v)
-	}
-	if v := os.Getenv("BB_SOURCE_ORGSDATA"); v != "" {
-		cfg.Sources.OrgsData = truthy(v)
+	if v := os.Getenv("BB_SOURCE_DOTGOV"); v != "" {
+		cfg.Sources.Dotgov = truthy(v)
 	}
 }
 
