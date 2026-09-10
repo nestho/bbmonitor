@@ -10,8 +10,8 @@ import (
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
 
-	"github.com/bbmonitor/bbmonitor/internal/fetcher"
-	"github.com/bbmonitor/bbmonitor/internal/storage"
+	"github.com/nestho/bbmonitor/internal/fetcher"
+	"github.com/nestho/bbmonitor/internal/storage"
 )
 
 type Model struct {
