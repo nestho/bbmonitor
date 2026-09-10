@@ -6,8 +6,8 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/bbmonitor/bbmonitor/internal/fetcher"
-	"github.com/bbmonitor/bbmonitor/internal/storage"
+	"github.com/nestho/bbmonitor/internal/fetcher"
+	"github.com/nestho/bbmonitor/internal/storage"
 )
 
 const pdURL = "https://raw.githubusercontent.com/projectdiscovery/public-bugbounty-programs/main/dist/data.json"
@@ -15,7 +15,6 @@ const pdURL = "https://raw.githubusercontent.com/projectdiscovery/public-bugboun
 type ProjectDiscoveryAdapter struct{}
 
 func NewProjectDiscovery() *ProjectDiscoveryAdapter { return &ProjectDiscoveryAdapter{} }
-
 func (a *ProjectDiscoveryAdapter) Name() string { return "projectdiscovery" }
 
 type pdRoot struct {
@@ -37,8 +36,7 @@ func (a *ProjectDiscoveryAdapter) Fetch(ctx context.Context, st *storage.Storage
 	if notMod {
 		return res, nil
 	}
-	res.ETag = etag
-	res.LastModified = lastMod
+	res.ETag, res.LastModified = etag, lastMod
 	var root pdRoot
 	if err := json.Unmarshal(body, &root); err != nil {
 		return res, fmt.Errorf("parse projectdiscovery: %w", err)
@@ -46,43 +44,31 @@ func (a *ProjectDiscoveryAdapter) Fetch(ctx context.Context, st *storage.Storage
 	for _, p := range root.Programs {
 		handle := sanitizeHandle(p.Name)
 		raw, _ := json.Marshal(p)
-		prog := &storage.Program{
-			Source: a.Name(), Handle: handle, Name: p.Name, URL: p.URL,
-			OffersBounty: p.Bounty, Platform: "public", RawJSON: string(raw),
-		}
+		prog := &storage.Program{Source: a.Name(), Handle: handle, Name: p.Name, URL: p.URL, OffersBounty: p.Bounty, Platform: "public", Layer: "program", RawJSON: string(raw)}
 		progID, isNew, err := st.UpsertProgram(prog)
 		if err != nil {
 			continue
 		}
 		if isNew {
 			res.ProgramsNew++
-			ch := storage.Change{
-				Source: a.Name(), Kind: "program_added", Entity: handle,
-				Details: fmt.Sprintf(`{"name":%q,"url":%q,"bounty":%v}`, p.Name, p.URL, p.Bounty),
-			}
+			ch := storage.Change{Source: a.Name(), Kind: "program_added", Entity: handle, Details: fmt.Sprintf(`{"name":%q}`, p.Name)}
 			_ = st.RecordChange(&ch)
 			res.Changes = append(res.Changes, ch)
 		}
-		seen := make(map[string]struct{})
+		seen := map[string]struct{}{}
 		for _, d := range p.Domains {
 			if d == "" {
 				continue
 			}
 			seen[d] = struct{}{}
-			t := &storage.Target{
-				ProgramID: progID, Source: a.Name(), AssetIdentifier: d, AssetType: "DOMAIN",
-				EligibleForBounty: p.Bounty, EligibleForSubmission: true, InScope: true,
-			}
+			t := &storage.Target{ProgramID: progID, Source: a.Name(), AssetIdentifier: d, AssetType: "DOMAIN", EligibleForBounty: p.Bounty, EligibleForSubmission: true, InScope: true}
 			_, tNew, err := st.UpsertTarget(t)
 			if err != nil {
 				continue
 			}
 			if tNew {
 				res.TargetsNew++
-				ch := storage.Change{
-					Source: a.Name(), Kind: "target_added", Entity: d,
-					Details: fmt.Sprintf(`{"program":%q}`, handle),
-				}
+				ch := storage.Change{Source: a.Name(), Kind: "target_added", Entity: d, Details: fmt.Sprintf(`{"program":%q}`, handle)}
 				_ = st.RecordChange(&ch)
 				res.Changes = append(res.Changes, ch)
 			}
@@ -101,9 +87,8 @@ func sanitizeHandle(name string) string {
 			r = append(r, '_')
 		}
 	}
-	s := string(r)
-	if s == "" {
-		return "unknown"
+	if s := string(r); s != "" {
+		return s
 	}
-	return s
+	return "unknown"
 }
