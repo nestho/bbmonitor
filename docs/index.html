@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>bbmonitor — Bug Bounty Scope Monitor</title>
+  <meta name="description" content="Clean, production-ready Bug Bounty scope monitor written in Go. Concurrent fetch, SQLite, diff on every change, Telegram & Webhook notifications." />
+  <style>
+    :root {
+      --bg: #0d1117;
+      --card: #161b22;
+      --border: #30363d;
+      --text: #e6edf3;
+      --muted: #8b949e;
+      --accent: #3fb950;
+      --link: #58a6ff;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.6;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+    .container { max-width: 720px; margin: 0 auto; padding: 2.5rem 1.25rem; flex: 1; }
+    header { margin-bottom: 2.5rem; }
+    h1 { font-size: 2rem; font-weight: 700; letter-spacing: -0.02em; }
+    .tagline { color: var(--muted); margin-top: 0.4rem; font-size: 1.05rem; }
+    .badges { margin-top: 1.2rem; display: flex; gap: 0.6rem; flex-wrap: wrap; }
+    .badge {
+      display: inline-block;
+      padding: 0.25rem 0.65rem;
+      border-radius: 999px;
+      font-size: 0.75rem;
+      background: var(--card);
+      border: 1px solid var(--border);
+      color: var(--muted);
+    }
+    .card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 1.4rem 1.5rem;
+      margin-bottom: 1.25rem;
+    }
+    .card h2 { font-size: 1.1rem; margin-bottom: 0.75rem; }
+    ul { padding-left: 1.2rem; color: var(--muted); }
+    li { margin-bottom: 0.35rem; }
+    a { color: var(--link); text-decoration: none; }
+    a:hover { text-decoration: underline; }
+    .cta {
+      display: inline-block;
+      margin-top: 0.8rem;
+      padding: 0.55rem 1.1rem;
+      background: var(--accent);
+      color: #0d1117;
+      font-weight: 600;
+      border-radius: 8px;
+      text-decoration: none;
+    }
+    .cta:hover { opacity: 0.9; text-decoration: none; }
+    .donate {
+      text-align: center;
+      margin-top: 2.5rem;
+      padding: 1.5rem;
+      border: 1px dashed var(--border);
+      border-radius: 12px;
+    }
+    .donate p { color: var(--muted); margin-bottom: 0.8rem; font-size: 0.95rem; }
+    footer {
+      text-align: center;
+      padding: 1.5rem;
+      color: var(--muted);
+      font-size: 0.85rem;
+      border-top: 1px solid var(--border);
+    }
+    code { background: #21262d; padding: 0.15rem 0.4rem; border-radius: 4px; font-size: 0.9em; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>bbmonitor</h1>
+      <p class="tagline">Clean, production-ready Bug Bounty scope monitor written in Go.</p>
+      <div class="badges">
+        <span class="badge">Go</span>
+        <span class="badge">SQLite</span>
+        <span class="badge">TUI + Daemon</span>
+        <span class="badge">Telegram / Webhook</span>
+        <span class="badge">MIT</span>
+      </div>
+    </header>
+
+    <div class="card">
+      <h2>What it does</h2>
+      <ul>
+        <li>Concurrently fetches public BB / VDP scopes from multiple trusted sources</li>
+        <li>Stores everything in SQLite + exports clean JSON</li>
+        <li>Detects <strong>every</strong> change (new program, scope add/remove/update…)</li>
+        <li>Notifies via Telegram or any webhook</li>
+        <li>Runs as interactive TUI or background systemd service</li>
+        <li>Single binary, resume-safe, config via YAML + environment variables</li>
+      </ul>
+      <a class="cta" href="https://github.com/nestho/bbmonitor">View on GitHub →</a>
+    </div>
+
+    <div class="card">
+      <h2>Sources (phase 1)</h2>
+      <ul>
+        <li>arkadiyt/bounty-targets-data</li>
+        <li>projectdiscovery/public-bugbounty-programs</li>
+        <li>disclose/diodb</li>
+        <li>rix4uni/scope</li>
+        <li>nikitastupin/orgs-data</li>
+      </ul>
+    </div>
+
+    <div class="card">
+      <h2>Quick start</h2>
+      <pre style="background:#0d1117;padding:1rem;border-radius:8px;overflow-x:auto;font-size:0.9rem;color:#c9d1d9"><code>go build -o bbmonitor ./cmd/bbmonitor
+cp config.example.yaml config.yaml
+./bbmonitor -once          # one-shot
+./bbmonitor                # TUI
+BB_MODE=daemon ./bbmonitor # background</code></pre>
+    </div>
+
+    <div class="donate">
+      <p>If this tool saved you time or helped you find programs faster, consider supporting it.</p>
+      <a class="cta" href="https://github.com/sponsors/nestho" target="_blank" rel="noopener">♥ Sponsor / Donate</a>
+      <p style="margin-top:0.8rem;font-size:0.85rem">or just star the repo — it helps a lot</p>
+    </div>
+  </div>
+
+  <footer>
+    <p>bbmonitor · MIT License · <a href="https://github.com/nestho/bbmonitor">GitHub</a></p>
+  </footer>
+</body>
+</html>
