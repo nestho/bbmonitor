@@ -1,0 +1,27 @@
+[Unit]
+Description=bbmonitor - Bug Bounty scope monitor
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=bbmonitor
+Group=bbmonitor
+WorkingDirectory=/opt/bbmonitor
+ExecStart=/opt/bbmonitor/bbmonitor -config /etc/bbmonitor/config.yaml
+Restart=on-failure
+RestartSec=10
+
+Environment=BB_MODE=daemon
+Environment=BB_DATA_DIR=/var/lib/bbmonitor
+Environment=BB_DB_PATH=/var/lib/bbmonitor/bbmonitor.db
+Environment=BB_EXPORT_DIR=/var/lib/bbmonitor/exports
+
+NoNewPrivileges=true
+ProtectSystem=strict
+ProtectHome=true
+PrivateTmp=true
+ReadWritePaths=/var/lib/bbmonitor
+
+[Install]
+WantedBy=multi-user.target

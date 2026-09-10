@@ -1,0 +1,40 @@
+# bbmonitor configuration
+# Environment variables override these values (prefix BB_)
+# Example: BB_INTERVAL=5m  BB_TELEGRAM_BOT_TOKEN=xxx
+
+data_dir: "./data"
+db_path: "./data/bbmonitor.db"
+export_dir: "./data/exports"
+
+# How often to poll sources (default 10m)
+interval: 10m
+
+# Concurrent fetch workers
+workers: 6
+
+# Sources to enable (all enabled by default)
+sources:
+  arkadiyt: true
+  projectdiscovery: true
+  diodb: true
+  rix4uni: true
+  orgsdata: true
+
+# Notification
+notify:
+  enabled: true
+  telegram:
+    enabled: false
+    bot_token: ""
+    chat_id: ""
+  webhook:
+    enabled: false
+    url: ""
+    headers: {}
+
+# Logging
+log_level: info
+log_file: ""
+
+# Daemon / TUI
+mode: tui
