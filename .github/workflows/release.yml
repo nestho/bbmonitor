@@ -41,6 +41,9 @@ jobs:
         with:
           go-version: '1.22'
 
+      - name: Resolve modules
+        run: go mod tidy
+
       - name: Build
         env:
           GOOS: ${{ matrix.goos }}
@@ -51,7 +54,7 @@ jobs:
           if [ "$GOOS" = "windows" ]; then EXT=".exe"; fi
           OUT="bbmonitor_${{ matrix.goos }}_${{ matrix.goarch }}${EXT}"
           mkdir -p dist
-          go build -trimpath -ldflags="-s -w" -o "dist/${OUT}" ./cmd/bbmonitor
+          go build -trimpath -ldflags="-s -w -X main.version=${{ github.event.inputs.version || github.ref_name }}" -o "dist/${OUT}" ./cmd/bbmonitor
           cd dist && sha256sum "${OUT}" > "${OUT}.sha256"
 
       - uses: actions/upload-artifact@v4
@@ -80,7 +83,24 @@ jobs:
         with:
           tag_name: ${{ github.event.inputs.version || github.ref_name }}
           name: ${{ github.event.inputs.version || github.ref_name }}
-          body_path: CHANGELOG.md
+          body: |
+            ## bbmonitor ${{ github.event.inputs.version || github.ref_name }}
+
+            Production-ready bug bounty scope & inventory monitor.
+
+            ### Binaries
+            | File | Platform |
+            |------|----------|
+            | `bbmonitor_linux_amd64` | Linux x86_64 |
+            | `bbmonitor_linux_arm64` | Linux ARM64 |
+            | `bbmonitor_windows_amd64.exe` | Windows x86_64 |
+            | `bbmonitor_windows_arm64.exe` | Windows ARM64 |
+            | `bbmonitor_darwin_amd64` | macOS Intel |
+            | `bbmonitor_darwin_arm64` | macOS Apple Silicon |
+
+            Each binary has a matching `.sha256` checksum file.
+
+            See [CHANGELOG.md](https://github.com/nestho/bbmonitor/blob/main/CHANGELOG.md) for details.
           files: release/*
           draft: false
           generate_release_notes: true
