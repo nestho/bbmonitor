@@ -79,13 +79,13 @@ func main() {
 	go func() {
 		ticker := time.NewTicker(cfg.Interval)
 		defer ticker.Stop()
-		doSync(ctx, store, mgr, notifier, p)
+		doSync(ctx, cfg, store, mgr, notifier, p)
 		for {
 			select {
 			case <-ctx.Done():
 				return
 			case <-ticker.C:
-				doSync(ctx, store, mgr, notifier, p)
+				doSync(ctx, cfg, store, mgr, notifier, p)
 			}
 		}
 	}()
@@ -95,7 +95,7 @@ func main() {
 	}
 }
 
-func doSync(ctx context.Context, store *storage.Storage, mgr *fetcher.Manager, notifier *notify.Notifier, p *tea.Program) {
+func doSync(ctx context.Context, cfg *config.Config, store *storage.Storage, mgr *fetcher.Manager, notifier *notify.Notifier, p *tea.Program) {
 	results := mgr.RunOnce(ctx)
 	changes, err := store.UnnotifiedChanges(500)
 	if err == nil && len(changes) > 0 {
@@ -107,16 +107,12 @@ func doSync(ctx context.Context, store *storage.Storage, mgr *fetcher.Manager, n
 			_ = store.MarkChangesNotified(ids)
 		}
 	}
-	_ = store.ExportProgramsJSON(filepath.Join(storeExport(cfgExport(cfgData())), "programs.json"))
-	_ = store.ExportTargetsJSON(filepath.Join(storeExport(cfgExport(cfgData())), "targets.json"))
+	_ = store.ExportProgramsJSON(filepath.Join(cfg.ExportDir, "programs.json"))
+	_ = store.ExportTargetsJSON(filepath.Join(cfg.ExportDir, "targets.json"))
 	if p != nil {
 		p.Send(tui.SyncDone(results))
 	}
 }
-
-func cfgData() string { return "./data/exports" }
-func cfgExport(d string) string { return d }
-func storeExport(d string) string { return d }
 
 func runDaemon(ctx context.Context, cfg *config.Config, store *storage.Storage, mgr *fetcher.Manager, notifier *notify.Notifier, once bool) {
 	log.Printf("bbmonitor daemon started (interval=%s)", cfg.Interval)
